@@ -40,14 +40,15 @@ func onReady() {
 				}
 				systray.SetIcon(bytes)
 
-				if len(mEntries) == 0 && len(newResult.Lines()) > 0 {
-					for _, line := range newResult.Lines() {
+				lines := newResult.Lines()
+				if len(mEntries) == 0 && len(lines) > 0 {
+					for _, line := range lines {
 						mEntries = append(mEntries, systray.AddMenuItem(line, line))
 					}
-				} else if len(newResult.Lines()) > 0 {
+				} else if len(lines) > 0 {
 					for i, entry := range mEntries {
-						entry.SetTitle(newResult.Lines()[i])
-						entry.SetTooltip(newResult.Lines()[i])
+						entry.SetTitle(lines[i])
+						entry.SetTooltip(lines[i])
 					}
 				}
 

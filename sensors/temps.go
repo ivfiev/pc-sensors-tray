@@ -8,6 +8,7 @@ import (
 	"math"
 	"os/exec"
 	"pc-sensors-tray/types"
+	"slices"
 	"strings"
 )
 
@@ -33,6 +34,7 @@ func (res TemperaturesResult) Lines() []string {
 	temps := lo.Map(lo.Keys(res.temperatures), func(key string, i int) string {
 		return fmt.Sprintf("%s -> %d°", key, int(res.temperatures[key]))
 	})
+	slices.Sort(temps)
 	return append(lines, temps...)
 }
 
