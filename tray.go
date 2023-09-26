@@ -19,7 +19,7 @@ func onReady() {
 	args := os.Args[1:]
 	reader := getSensorReader(args)
 	svc := icon.NewIconService()
-	mRefresh := systray.AddMenuItem("Refresh", "Refresh")
+	mQuit := systray.AddMenuItem("Quit", "Quit")
 	mEntries := make([]*systray.MenuItem, 0)
 	ticker := time.NewTicker(3 * time.Second)
 	var lastResult types.Result
@@ -31,16 +31,17 @@ func onReady() {
 			newResult := reader()
 			changeSignificant := lastResult == nil || !lastResult.IsClose(newResult)
 			noUpdateForAWhile := time.Now().UnixMilli()-lastUpdate.UnixMilli() > 60_000
-			needsUpdate := changeSignificant || noUpdateForAWhile
+			iconNeedsUpdate := changeSignificant || noUpdateForAWhile
 
-			if needsUpdate {
-				update(svc, newResult, &mEntries)
+			if iconNeedsUpdate {
+				updateIcon(svc, newResult)
 				lastResult = newResult
 				lastUpdate = time.Now()
 			}
-		case <-mRefresh.ClickedCh:
-			newResult := reader()
-			update(svc, newResult, &mEntries)
+			updateMenu(&mEntries, newResult)
+
+		case <-mQuit.ClickedCh:
+			systray.Quit()
 		}
 	}
 }
@@ -49,13 +50,15 @@ func onExit() {
 
 }
 
-func update(svc icon.IconService, result types.Result, mEntries *[]*systray.MenuItem) {
+func updateIcon(svc icon.IconService, result types.Result) {
 	bytes, err := svc.GetIcon(result)
 	if err != nil {
 		log.Fatal(err)
 	}
 	systray.SetIcon(bytes)
+}
 
+func updateMenu(mEntries *[]*systray.MenuItem, result types.Result) {
 	lines := result.Lines()
 	if len(*mEntries) == 0 && len(lines) > 0 {
 		for _, line := range lines {
